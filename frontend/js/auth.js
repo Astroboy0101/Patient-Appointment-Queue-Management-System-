@@ -3,7 +3,7 @@
  * Handles login, signup, logout, and session management
  */
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'web-production-d92ae.up.railway.app';
 
 // Get token from localStorage or session
 function getToken() {
