@@ -19,13 +19,33 @@ from dsa.priority_queue import PriorityQueue
 from dsa.linked_list import LinkedList
 from dsa.scheduler import Scheduler
 
-app = Flask(__name__, static_folder=None)
+app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'dsa-project-secret-key-change-in-production')
 CORS(app, supports_credentials=True, origins=["*"])  # Allow all origins for Railway deployment
 
 # Get the project root directory (parent of backend)
-PROJECT_ROOT = Path(__file__).parent.parent
-FRONTEND_DIR = PROJECT_ROOT / 'frontend'
+# Handle both local development and Railway deployment
+_current_file = Path(__file__).resolve()
+_backend_dir = _current_file.parent
+PROJECT_ROOT = _backend_dir.parent
+
+# Try different possible frontend locations
+FRONTEND_DIR = None
+possible_paths = [
+    PROJECT_ROOT / 'frontend',  # Standard: project/frontend
+    _backend_dir / 'frontend',  # Alternative: backend/frontend
+    Path('frontend'),  # Current directory: ./frontend
+    Path('../frontend'),  # Parent directory: ../frontend
+]
+
+for path in possible_paths:
+    if path.exists() and path.is_dir():
+        FRONTEND_DIR = path.resolve()
+        break
+
+# If still not found, use default
+if FRONTEND_DIR is None:
+    FRONTEND_DIR = PROJECT_ROOT / 'frontend'
 
 # Initialize managers
 auth_manager = AuthManager(db)
@@ -447,47 +467,83 @@ def health_check():
     return jsonify({'status': 'healthy', 'message': 'API is running'}), 200
 
 
-# ==================== FRONTEND ROUTES ====================
+# ==================== FRONTEND ROUTES (Must be last) ====================
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
+@app.route('/', methods=['GET'])
+def serve_index():
+    """Serve index.html for root path."""
+    if not FRONTEND_DIR or not FRONTEND_DIR.exists():
+        return jsonify({
+            'error': 'Frontend directory not found',
+            'searched_path': str(FRONTEND_DIR) if FRONTEND_DIR else 'None',
+            'current_dir': str(Path.cwd()),
+            'backend_dir': str(Path(__file__).parent),
+            'project_root': str(PROJECT_ROOT)
+        }), 500
+    index_file = FRONTEND_DIR / 'index.html'
+    if not index_file.exists():
+        return jsonify({
+            'error': 'index.html not found in frontend directory',
+            'frontend_dir': str(FRONTEND_DIR),
+            'files_in_dir': [f.name for f in FRONTEND_DIR.iterdir()] if FRONTEND_DIR.exists() else []
+        }), 500
+    return send_from_directory(str(FRONTEND_DIR), 'index.html', mimetype='text/html')
+
+@app.route('/<path:path>', methods=['GET'])
 def serve_frontend(path):
-    """Serve frontend files from Railway."""
-    # If it's an API request, let it pass through (shouldn't happen here, but safety check)
+    """Serve frontend files from Railway. This route must be registered last."""
+    # Skip API routes - they should be handled by routes above
     if path.startswith('api/'):
-        return jsonify({'error': 'Not found'}), 404
+        return jsonify({'error': 'API route not found'}), 404
     
-    # If no path or path is a directory, serve index.html
-    if not path or not Path(FRONTEND_DIR / path).is_file():
-        if path and not path.endswith('/'):
-            path = path + '/'
-        path = 'index.html'
+    # Check if frontend directory exists
+    if not FRONTEND_DIR.exists():
+        return jsonify({'error': 'Frontend directory not found'}), 500
     
-    # Check if it's a file request (css, js, images, etc.)
+    # Handle root path
+    if not path or path == '':
+        return send_from_directory(str(FRONTEND_DIR), 'index.html', mimetype='text/html')
+    
+    # Build file path
     file_path = FRONTEND_DIR / path
     
-    # If file exists, serve it
-    if file_path.exists() and file_path.is_file():
-        # Determine content type
-        if path.endswith('.html'):
-            content_type = 'text/html'
-        elif path.endswith('.css'):
-            content_type = 'text/css'
-        elif path.endswith('.js'):
-            content_type = 'application/javascript'
-        elif path.endswith('.png'):
-            content_type = 'image/png'
-        elif path.endswith('.jpg') or path.endswith('.jpeg'):
-            content_type = 'image/jpeg'
-        elif path.endswith('.svg'):
-            content_type = 'image/svg+xml'
+    # If file doesn't exist, try adding .html extension
+    if not file_path.exists():
+        html_path = FRONTEND_DIR / f"{path}.html"
+        if html_path.exists():
+            file_path = html_path
+            path = f"{path}.html"
         else:
-            content_type = 'text/plain'
-        
-        return send_from_directory(str(FRONTEND_DIR), path, mimetype=content_type)
+            # Default to index.html for unknown routes
+            return send_from_directory(str(FRONTEND_DIR), 'index.html', mimetype='text/html')
     
-    # Default to index.html for SPA routing
-    return send_from_directory(str(FRONTEND_DIR), 'index.html', mimetype='text/html')
+    # If it's a directory, serve index.html
+    if file_path.is_dir():
+        return send_from_directory(str(FRONTEND_DIR), 'index.html', mimetype='text/html')
+    
+    # Determine content type
+    if path.endswith('.html'):
+        content_type = 'text/html'
+    elif path.endswith('.css'):
+        content_type = 'text/css'
+    elif path.endswith('.js'):
+        content_type = 'application/javascript'
+    elif path.endswith('.png'):
+        content_type = 'image/png'
+    elif path.endswith('.jpg') or path.endswith('.jpeg'):
+        content_type = 'image/jpeg'
+    elif path.endswith('.svg'):
+        content_type = 'image/svg+xml'
+    elif path.endswith('.ico'):
+        content_type = 'image/x-icon'
+    else:
+        content_type = 'text/plain'
+    
+    try:
+        return send_from_directory(str(FRONTEND_DIR), path, mimetype=content_type)
+    except Exception as e:
+        # If file not found, serve index.html
+        return send_from_directory(str(FRONTEND_DIR), 'index.html', mimetype='text/html')
 
 
 if __name__ == '__main__':
