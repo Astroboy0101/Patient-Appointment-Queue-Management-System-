@@ -20,12 +20,12 @@
 
     <nav>
         <ul class="nav-links">
-            <li><a href="dashboard.html">Dashboard</a></li>
-            <li><a href="patient-registration.html">Register Patient</a></li>
-            <li><a href="appointment.html">Appointments & Queue</a></li>
-            <li><a href="search.html">Search</a></li>
-            <li><a href="admin.html">Admin</a></li>
-            <li><a href="about.html">About Us</a></li>
+            <li><a href="/dashboard.html">Dashboard</a></li>
+            <li><a href="/patient-registration.html">Register Patient</a></li>
+            <li><a href="/appointment.html">Appointments & Queue</a></li>
+            <li><a href="/search.html">Search</a></li>
+            <li><a href="/admin.html">Admin</a></li>
+            <li><a href="/about.html">About Us</a></li>
         </ul>
     </nav>
 
@@ -40,9 +40,9 @@
             <div class="card">
                 <h2 class="card-title">Quick Actions</h2>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <a href="patient-registration.html" class="btn btn-primary">Register New Patient</a>
-                    <a href="appointment.html" class="btn btn-primary">View Queue</a>
-                    <a href="search.html" class="btn btn-secondary">Search Patients</a>
+                    <a href="/patient-registration.html" class="btn btn-primary">Register New Patient</a>
+                    <a href="/appointment.html" class="btn btn-primary">View Queue</a>
+                    <a href="/search.html" class="btn btn-secondary">Search Patients</a>
                 </div>
             </div>
             
@@ -59,7 +59,7 @@
     <script>
         // Check authentication
         if (!window.auth.isAuthenticated()) {
-            window.location.href = 'login.html';
+            window.location.href = '/login.html';
         }
         
         // Load dashboard stats

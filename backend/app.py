@@ -3,11 +3,12 @@ Flask Application - Patient Appointment & Queue Management System
 Main backend server with API endpoints.
 """
 
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 import os
 from datetime import datetime
 import uuid
+from pathlib import Path
 
 from database import db
 from auth.auth import AuthManager
@@ -18,9 +19,13 @@ from dsa.priority_queue import PriorityQueue
 from dsa.linked_list import LinkedList
 from dsa.scheduler import Scheduler
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=None)
 app.secret_key = os.getenv('SECRET_KEY', 'dsa-project-secret-key-change-in-production')
-CORS(app, supports_credentials=True, origins=["*"])  # Allow all origins for development
+CORS(app, supports_credentials=True, origins=["*"])  # Allow all origins for Railway deployment
+
+# Get the project root directory (parent of backend)
+PROJECT_ROOT = Path(__file__).parent.parent
+FRONTEND_DIR = PROJECT_ROOT / 'frontend'
 
 # Initialize managers
 auth_manager = AuthManager(db)
@@ -442,6 +447,50 @@ def health_check():
     return jsonify({'status': 'healthy', 'message': 'API is running'}), 200
 
 
+# ==================== FRONTEND ROUTES ====================
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    """Serve frontend files from Railway."""
+    # If it's an API request, let it pass through (shouldn't happen here, but safety check)
+    if path.startswith('api/'):
+        return jsonify({'error': 'Not found'}), 404
+    
+    # If no path or path is a directory, serve index.html
+    if not path or not Path(FRONTEND_DIR / path).is_file():
+        if path and not path.endswith('/'):
+            path = path + '/'
+        path = 'index.html'
+    
+    # Check if it's a file request (css, js, images, etc.)
+    file_path = FRONTEND_DIR / path
+    
+    # If file exists, serve it
+    if file_path.exists() and file_path.is_file():
+        # Determine content type
+        if path.endswith('.html'):
+            content_type = 'text/html'
+        elif path.endswith('.css'):
+            content_type = 'text/css'
+        elif path.endswith('.js'):
+            content_type = 'application/javascript'
+        elif path.endswith('.png'):
+            content_type = 'image/png'
+        elif path.endswith('.jpg') or path.endswith('.jpeg'):
+            content_type = 'image/jpeg'
+        elif path.endswith('.svg'):
+            content_type = 'image/svg+xml'
+        else:
+            content_type = 'text/plain'
+        
+        return send_from_directory(str(FRONTEND_DIR), path, mimetype=content_type)
+    
+    # Default to index.html for SPA routing
+    return send_from_directory(str(FRONTEND_DIR), 'index.html', mimetype='text/html')
+
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
 

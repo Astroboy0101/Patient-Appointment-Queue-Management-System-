@@ -14,7 +14,7 @@
         </div>
         <div class="header-actions">
             <button class="btn-icon" id="theme-toggle" onclick="window.theme.toggleTheme()">🌙</button>
-            <a href="index.html" class="btn btn-secondary">Home</a>
+            <a href="/index.html" class="btn btn-secondary">Home</a>
         </div>
     </header>
 
@@ -40,12 +40,12 @@
                     </div>
                     
                     <div style="text-align: center; margin-top: 1rem;">
-                        <a href="forgot-password.html" style="color: var(--primary-color); text-decoration: none;">Forgot Password?</a>
+                        <a href="/forgot-password.html" style="color: var(--primary-color); text-decoration: none;">Forgot Password?</a>
                     </div>
                     
                     <div style="text-align: center; margin-top: 1rem;">
                         <span style="color: var(--text-color); opacity: 0.7;">Don't have an account? </span>
-                        <a href="signup.html" style="color: var(--primary-color); text-decoration: none;">Sign Up</a>
+                        <a href="/signup.html" style="color: var(--primary-color); text-decoration: none;">Sign Up</a>
                     </div>
                 </form>
             </div>
@@ -70,7 +70,7 @@
             if (result.success) {
                 alertContainer.innerHTML = '<div class="alert alert-success">Login successful! Redirecting...</div>';
                 setTimeout(() => {
-                    window.location.href = 'dashboard.html';
+                    window.location.href = '/dashboard.html';
                 }, 1000);
             } else {
                 alertContainer.innerHTML = `<div class="alert alert-error">${result.error}</div>`;

@@ -1,9 +1,10 @@
 /**
- * API Utilities
+ * API Utilities - LOCAL DEVELOPMENT VERSION
  * Handles all API calls to the backend
+ * Uses localhost:5000 for local development
  */
 
-const API_BASE_URL = 'https://web-production-d92ae.up.railway.app/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Get auth headers
 function getAuthHeaders() {

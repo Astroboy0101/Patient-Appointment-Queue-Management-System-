@@ -1,9 +1,10 @@
 /**
- * Authentication Utilities
+ * Authentication Utilities - LOCAL DEVELOPMENT VERSION
  * Handles login, signup, logout, and session management
+ * Uses localhost:5000 for local development
  */
 
-const API_BASE_URL = 'https://web-production-d92ae.up.railway.app/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Get token from localStorage or session
 function getToken() {
@@ -116,7 +117,7 @@ async function logout() {
         }
     }
     removeToken();
-    window.location.href = '/';
+    window.location.href = '/index_local.html';
 }
 
 // Forgot password
@@ -191,8 +192,8 @@ async function checkAdminAccess() {
 function requireAuth() {
     if (!isAuthenticated()) {
         const currentPage = window.location.pathname;
-        if (!currentPage.includes('index.html') && !currentPage.includes('login.html') && !currentPage.includes('signup.html')) {
-            window.location.href = '/login.html?redirect=' + encodeURIComponent(currentPage);
+        if (!currentPage.includes('index') && !currentPage.includes('login') && !currentPage.includes('signup')) {
+            window.location.href = '/login_local.html?redirect=' + encodeURIComponent(currentPage);
         }
     }
 }
