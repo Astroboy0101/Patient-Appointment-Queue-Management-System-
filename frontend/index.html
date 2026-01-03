@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Appointment & Queue Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-section">
+            <div class="logo">🏥</div>
+            <div class="site-name">Patient Queue System</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" id="theme-toggle" onclick="window.theme.toggleTheme()">🌙</button>
+            <a href="login.html" class="btn btn-secondary">Login</a>
+            <a href="signup.html" class="btn btn-primary">Sign Up</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <section style="text-align: center; padding: 4rem 0;">
+                <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--primary-color);">Patient Appointment & Queue Management System</h1>
+                <p style="font-size: 1.25rem; margin-bottom: 2rem; color: var(--text-color); opacity: 0.8;">
+                    Efficiently manage patient appointments and prioritize emergency cases
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="login.html" class="btn btn-primary" style="padding: 0.75rem 2rem;">Get Started</a>
+                    <a href="about.html" class="btn btn-secondary" style="padding: 0.75rem 2rem;">About Us</a>
+                </div>
+            </section>
+
+            <section style="margin-top: 4rem;">
+                <h2 style="text-align: center; margin-bottom: 2rem;">Features</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">⚡</div>
+                        <div class="stat-label">Priority Queue</div>
+                        <p style="margin-top: 0.5rem; font-size: 0.875rem;">Emergency cases are handled first using priority queue data structure</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">📋</div>
+                        <div class="stat-label">Queue Management</div>
+                        <p style="margin-top: 0.5rem; font-size: 0.875rem;">Efficient FIFO queue for regular appointments</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">🔗</div>
+                        <div class="stat-label">Dynamic Records</div>
+                        <p style="margin-top: 0.5rem; font-size: 0.875rem;">Linked list for dynamic patient record management</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">🎯</div>
+                        <div class="stat-label">Smart Scheduling</div>
+                        <p style="margin-top: 0.5rem; font-size: 0.875rem;">Greedy algorithm for optimal doctor-patient assignment</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Patient Appointment & Queue Management System. All rights reserved.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.875rem;">By Biomedical Engineering Students - Addis Ababa University</p>
+    </footer>
+
+    <script src="js/theme.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Registration - Patient Queue System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-section">
+            <div class="logo">🏥</div>
+            <div class="site-name">Patient Queue System</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" id="theme-toggle" onclick="window.theme.toggleTheme()">🌙</button>
+            <button class="btn btn-secondary" onclick="window.auth.logout()">Logout</button>
+        </div>
+    </header>
+
+    <nav>
+        <ul class="nav-links">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="patient-registration.html">Register Patient</a></li>
+            <li><a href="appointment.html">Appointments & Queue</a></li>
+            <li><a href="search.html">Search</a></li>
+            <li><a href="admin.html">Admin</a></li>
+            <li><a href="about.html">About Us</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="container" style="max-width: 800px;">
+            <h1 style="margin-bottom: 2rem;">Patient Registration</h1>
+            
+            <div class="card">
+                <h2 class="card-title">New Patient Information</h2>
+                <div id="alert-container"></div>
+                
+                <form id="patient-form">
+                    <div class="form-group">
+                        <label class="form-label" for="name">Full Name *</label>
+                        <input type="text" id="name" class="form-input" required>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="age">Age</label>
+                            <input type="number" id="age" class="form-input" min="0" max="150">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Phone Number</label>
+                            <input type="tel" id="phone" class="form-input">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email</label>
+                        <input type="email" id="email" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="condition">Medical Condition</label>
+                        <textarea id="condition" class="form-input" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="is-emergency" style="margin-right: 0.5rem;">
+                            Emergency Case
+                        </label>
+                    </div>
+                    
+                    <div class="form-group" id="priority-group" style="display: none;">
+                        <label class="form-label" for="priority">Priority Level (1 = Highest, 5 = Lowest)</label>
+                        <select id="priority" class="form-select">
+                            <option value="1">1 - Critical</option>
+                            <option value="2">2 - High</option>
+                            <option value="3">3 - Medium</option>
+                            <option value="4">4 - Low</option>
+                            <option value="5" selected>5 - Routine</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Register Patient</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+        // Check authentication
+        if (!window.auth.isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+        
+        // Show/hide priority field
+        document.getElementById('is-emergency').addEventListener('change', function() {
+            document.getElementById('priority-group').style.display = this.checked ? 'block' : 'none';
+        });
+        
+        // Handle form submission
+        document.getElementById('patient-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const alertContainer = document.getElementById('alert-container');
+            const isEmergency = document.getElementById('is-emergency').checked;
+            
+            const patientData = {
+                name: document.getElementById('name').value,
+                age: parseInt(document.getElementById('age').value) || null,
+                phone: document.getElementById('phone').value || null,
+                email: document.getElementById('email').value || null,
+                condition: document.getElementById('condition').value || null,
+                is_emergency: isEmergency,
+                priority: isEmergency ? parseInt(document.getElementById('priority').value) : 5
+            };
+            
+            // Show loading
+            alertContainer.innerHTML = '<div class="alert alert-info">Registering patient...</div>';
+            
+            try {
+                const result = await window.api.createPatient(patientData);
+                
+                if (result.patient) {
+                    alertContainer.innerHTML = '<div class="alert alert-success">Patient registered successfully! ID: ' + result.patient.id + '</div>';
+                    document.getElementById('patient-form').reset();
+                    document.getElementById('priority-group').style.display = 'none';
+                } else {
+                    alertContainer.innerHTML = '<div class="alert alert-error">' + (result.error || 'Registration failed') + '</div>';
+                }
+            } catch (error) {
+                alertContainer.innerHTML = '<div class="alert alert-error">Error: ' + error.message + '</div>';
+            }
+        });
+    </script>
+</body>
+</html>
+
+

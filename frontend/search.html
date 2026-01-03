@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search - Patient Queue System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-section">
+            <div class="logo">🏥</div>
+            <div class="site-name">Patient Queue System</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" id="theme-toggle" onclick="window.theme.toggleTheme()">🌙</button>
+            <button class="btn btn-secondary" onclick="window.auth.logout()">Logout</button>
+        </div>
+    </header>
+
+    <nav>
+        <ul class="nav-links">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="patient-registration.html">Register Patient</a></li>
+            <li><a href="appointment.html">Appointments & Queue</a></li>
+            <li><a href="search.html">Search</a></li>
+            <li><a href="admin.html">Admin</a></li>
+            <li><a href="about.html">About Us</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h1 style="margin-bottom: 2rem;">Search Patients</h1>
+            
+            <div class="card">
+                <div class="search-box">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search by patient name..." onkeyup="handleSearch()">
+                </div>
+                
+                <div id="search-results">
+                    <p style="color: var(--text-color); opacity: 0.7; text-align: center;">Enter a search query to find patients</p>
+                </div>
+            </div>
+            
+            <div class="card" id="results-card" style="display: none;">
+                <h2 class="card-title">Search Results</h2>
+                <div id="results-container"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+        // Check authentication
+        if (!window.auth.isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+        
+        let searchTimeout;
+        
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            const query = document.getElementById('search-input').value.trim();
+            
+            if (query.length === 0) {
+                document.getElementById('search-results').innerHTML = '<p style="color: var(--text-color); opacity: 0.7; text-align: center;">Enter a search query to find patients</p>';
+                document.getElementById('results-card').style.display = 'none';
+                return;
+            }
+            
+            // Debounce search
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const data = await window.api.searchPatients(query);
+                    
+                    const resultsContainer = document.getElementById('results-container');
+                    const resultsCard = document.getElementById('results-card');
+                    
+                    if (data.patients && data.patients.length > 0) {
+                        resultsCard.style.display = 'block';
+                        resultsContainer.innerHTML = `
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Age</th>
+                                        <th>Phone</th>
+                                        <th>Email</th>
+                                        <th>Condition</th>
+                                        <th>Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.patients.map(patient => `
+                                        <tr>
+                                            <td>${patient.id}</td>
+                                            <td><strong>${patient.name}</strong></td>
+                                            <td>${patient.age || 'N/A'}</td>
+                                            <td>${patient.phone || 'N/A'}</td>
+                                            <td>${patient.email || 'N/A'}</td>
+                                            <td>${patient.condition || 'N/A'}</td>
+                                            <td>
+                                                ${patient.is_emergency 
+                                                    ? '<span class="badge badge-emergency">Emergency</span>' 
+                                                    : '<span class="badge badge-regular">Regular</span>'}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `;
+                    } else {
+                        resultsCard.style.display = 'block';
+                        resultsContainer.innerHTML = '<p style="color: var(--text-color); opacity: 0.7; text-align: center;">No patients found matching your search</p>';
+                    }
+                } catch (error) {
+                    console.error('Search error:', error);
+                    document.getElementById('results-container').innerHTML = '<div class="alert alert-error">Error searching patients</div>';
+                }
+            }, 300);
+        }
+    </script>
+</body>
+</html>
+
+

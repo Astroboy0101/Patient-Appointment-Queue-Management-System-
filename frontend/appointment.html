@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments & Queue - Patient Queue System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-section">
+            <div class="logo">🏥</div>
+            <div class="site-name">Patient Queue System</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" id="theme-toggle" onclick="window.theme.toggleTheme()">🌙</button>
+            <button class="btn btn-secondary" onclick="window.auth.logout()">Logout</button>
+        </div>
+    </header>
+
+    <nav>
+        <ul class="nav-links">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="patient-registration.html">Register Patient</a></li>
+            <li><a href="appointment.html">Appointments & Queue</a></li>
+            <li><a href="search.html">Search</a></li>
+            <li><a href="admin.html">Admin</a></li>
+            <li><a href="about.html">About Us</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h1 style="margin-bottom: 2rem;">Appointments & Queue Management</h1>
+            
+            <div class="card">
+                <h2 class="card-title">Add Patient to Queue</h2>
+                <div id="add-alert-container"></div>
+                
+                <form id="add-to-queue-form" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 1rem; align-items: end;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="patient-select">Select Patient</label>
+                        <select id="patient-select" class="form-select" required>
+                            <option value="">-- Select Patient --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="queue-priority">Priority</label>
+                        <select id="queue-priority" class="form-select">
+                            <option value="5">5 - Routine</option>
+                            <option value="4">4 - Low</option>
+                            <option value="3">3 - Medium</option>
+                            <option value="2">2 - High</option>
+                            <option value="1">1 - Critical</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">
+                            <input type="checkbox" id="queue-emergency" style="margin-right: 0.5rem;">
+                            Emergency
+                        </label>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <button type="submit" class="btn btn-primary">Add to Queue</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="card">
+                    <h2 class="card-title">Emergency Queue <span class="badge badge-emergency" id="emergency-count">0</span></h2>
+                    <div id="emergency-queue">
+                        <p style="color: var(--text-color); opacity: 0.7;">No emergency patients in queue</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="card-title">Regular Queue <span class="badge badge-regular" id="regular-count">0</span></h2>
+                    <div id="regular-queue">
+                        <p style="color: var(--text-color); opacity: 0.7;">No regular patients in queue</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Queue Actions</h2>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="getNextPatient()">Get Next Patient</button>
+                    <button class="btn btn-secondary" onclick="assignPatients()">Assign to Doctors (Greedy Algorithm)</button>
+                    <button class="btn btn-secondary" onclick="loadQueue()">Refresh Queue</button>
+                </div>
+                <div id="action-result" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+        // Check authentication
+        if (!window.auth.isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+        
+        // Load patients for dropdown
+        async function loadPatients() {
+            try {
+                const data = await window.api.getPatients();
+                const select = document.getElementById('patient-select');
+                select.innerHTML = '<option value="">-- Select Patient --</option>';
+                
+                data.patients.forEach(patient => {
+                    const option = document.createElement('option');
+                    option.value = patient.id;
+                    option.textContent = patient.name + ' (ID: ' + patient.id + ')';
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading patients:', error);
+            }
+        }
+        
+        // Load queue
+        async function loadQueue() {
+            try {
+                const data = await window.api.getQueue();
+                
+                // Update counts
+                document.getElementById('emergency-count').textContent = data.emergency_size;
+                document.getElementById('regular-count').textContent = data.regular_size;
+                
+                // Display emergency queue
+                const emergencyContainer = document.getElementById('emergency-queue');
+                if (data.emergency_queue && data.emergency_queue.length > 0) {
+                    emergencyContainer.innerHTML = data.emergency_queue.map((entry, index) => {
+                        const patient = entry.item || entry;
+                        return `
+                            <div class="queue-item queue-item-emergency">
+                                <div>
+                                    <strong>${patient.name}</strong><br>
+                                    <small>Priority: ${entry.priority || patient.priority || 5} | ID: ${patient.id}</small>
+                                </div>
+                                <span class="badge badge-emergency">Emergency</span>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    emergencyContainer.innerHTML = '<p style="color: var(--text-color); opacity: 0.7;">No emergency patients in queue</p>';
+                }
+                
+                // Display regular queue
+                const regularContainer = document.getElementById('regular-queue');
+                if (data.regular_queue && data.regular_queue.length > 0) {
+                    regularContainer.innerHTML = data.regular_queue.map((patient, index) => {
+                        return `
+                            <div class="queue-item">
+                                <div>
+                                    <strong>${patient.name}</strong><br>
+                                    <small>ID: ${patient.id}</small>
+                                </div>
+                                <span class="badge badge-regular">Regular</span>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    regularContainer.innerHTML = '<p style="color: var(--text-color); opacity: 0.7;">No regular patients in queue</p>';
+                }
+            } catch (error) {
+                console.error('Error loading queue:', error);
+            }
+        }
+        
+        // Add to queue
+        document.getElementById('add-to-queue-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const patientId = document.getElementById('patient-select').value;
+            const isEmergency = document.getElementById('queue-emergency').checked;
+            const priority = parseInt(document.getElementById('queue-priority').value);
+            const alertContainer = document.getElementById('add-alert-container');
+            
+            if (!patientId) {
+                alertContainer.innerHTML = '<div class="alert alert-error">Please select a patient</div>';
+                return;
+            }
+            
+            try {
+                const result = await window.api.addToQueue(patientId, isEmergency, priority);
+                
+                if (result.message) {
+                    alertContainer.innerHTML = '<div class="alert alert-success">' + result.message + '</div>';
+                    loadQueue();
+                    document.getElementById('add-to-queue-form').reset();
+                } else {
+                    alertContainer.innerHTML = '<div class="alert alert-error">' + (result.error || 'Failed to add to queue') + '</div>';
+                }
+            } catch (error) {
+                alertContainer.innerHTML = '<div class="alert alert-error">Error: ' + error.message + '</div>';
+            }
+        });
+        
+        // Get next patient
+        async function getNextPatient() {
+            const resultContainer = document.getElementById('action-result');
+            resultContainer.innerHTML = '<div class="alert alert-info">Processing...</div>';
+            
+            try {
+                const result = await window.api.getNextPatient();
+                
+                if (result.patient) {
+                    resultContainer.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>Next Patient:</strong> ${result.patient.name} (${result.queue_type} queue)
+                        </div>
+                    `;
+                    loadQueue();
+                } else {
+                    resultContainer.innerHTML = '<div class="alert alert-info">' + (result.message || 'Queue is empty') + '</div>';
+                }
+            } catch (error) {
+                resultContainer.innerHTML = '<div class="alert alert-error">Error: ' + error.message + '</div>';
+            }
+        }
+        
+        // Assign patients using greedy algorithm
+        async function assignPatients() {
+            const resultContainer = document.getElementById('action-result');
+            resultContainer.innerHTML = '<div class="alert alert-info">Running greedy scheduling algorithm...</div>';
+            
+            try {
+                // Load doctors first
+                const doctorsData = await window.api.getDoctors();
+                const DOCTORS = doctorsData.doctors || [];
+                
+                const result = await window.api.assignPatients();
+                
+                if (result.assignments) {
+                    let html = '<div class="alert alert-success"><strong>Assignment Results:</strong><br><br>';
+                    for (const [doctorId, patients] of Object.entries(result.assignments)) {
+                        const doctor = DOCTORS.find(d => d.id === doctorId) || { name: doctorId };
+                        html += `<strong>${doctor.name}:</strong> ${patients.length} patient(s)<br>`;
+                    }
+                    html += '</div>';
+                    resultContainer.innerHTML = html;
+                } else {
+                    resultContainer.innerHTML = '<div class="alert alert-info">No patients to assign</div>';
+                }
+            } catch (error) {
+                resultContainer.innerHTML = '<div class="alert alert-error">Error: ' + error.message + '</div>';
+            }
+        }
+        
+        // Initialize
+        loadPatients();
+        loadQueue();
+        
+        // Refresh queue every 5 seconds
+        setInterval(loadQueue, 5000);
+    </script>
+</body>
+</html>
+

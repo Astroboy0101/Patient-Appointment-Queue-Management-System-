@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Patient Queue System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-section">
+            <div class="logo">🏥</div>
+            <div class="site-name">Patient Queue System</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" id="theme-toggle" onclick="window.theme.toggleTheme()">🌙</button>
+            <a href="index.html" class="btn btn-secondary">Home</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="container" style="max-width: 500px; margin-top: 4rem;">
+            <div class="card">
+                <h2 class="card-title">Sign Up</h2>
+                <div id="alert-container"></div>
+                
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label class="form-label" for="name">Full Name</label>
+                        <input type="text" id="name" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email</label>
+                        <input type="email" id="email" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" id="password" class="form-input" required minlength="6">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="confirm-password">Confirm Password</label>
+                        <input type="password" id="confirm-password" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Sign Up</button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <span style="color: var(--text-color); opacity: 0.7;">Already have an account? </span>
+                        <a href="login.html" style="color: var(--primary-color); text-decoration: none;">Login</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const alertContainer = document.getElementById('alert-container');
+            
+            if (password !== confirmPassword) {
+                alertContainer.innerHTML = '<div class="alert alert-error">Passwords do not match!</div>';
+                return;
+            }
+            
+            // Show loading
+            alertContainer.innerHTML = '<div class="alert alert-info">Creating account...</div>';
+            
+            const result = await window.auth.signup(name, email, password);
+            
+            if (result.success) {
+                alertContainer.innerHTML = '<div class="alert alert-success">Account created successfully! Redirecting...</div>';
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            } else {
+                alertContainer.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
+
+

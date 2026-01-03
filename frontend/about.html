@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Patient Queue System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-section">
+            <div class="logo">🏥</div>
+            <div class="site-name">Patient Queue System</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" id="theme-toggle" onclick="window.theme.toggleTheme()">🌙</button>
+            <span id="auth-buttons">
+                <a href="login.html" class="btn btn-secondary">Login</a>
+                <a href="signup.html" class="btn btn-primary">Sign Up</a>
+            </span>
+            <span id="logout-button" style="display: none;">
+                <button class="btn btn-secondary" onclick="window.auth.logout()">Logout</button>
+            </span>
+        </div>
+    </header>
+
+    <main>
+        <div class="container" style="max-width: 800px;">
+            <section style="text-align: center; padding: 2rem 0;">
+                <h1 style="font-size: 2rem; margin-bottom: 1rem; color: var(--primary-color);">About Us</h1>
+                <p style="font-size: 1.125rem; color: var(--text-color); opacity: 0.8;">
+                    By Biomedical Engineering Addis Ababa University Students
+                </p>
+            </section>
+
+            <div class="card">
+                <h2 class="card-title">Project Team</h2>
+                <div style="display: grid; gap: 1rem;">
+                    <div style="padding: 1rem; background-color: var(--bg-secondary); border-radius: 6px;">
+                        <strong>Daniel Dea</strong> — UGR/7149/16
+                    </div>
+                    <div style="padding: 1rem; background-color: var(--bg-secondary); border-radius: 6px;">
+                        <strong>Kena Fayera</strong> — UGR/5643/16
+                    </div>
+                    <div style="padding: 1rem; background-color: var(--bg-secondary); border-radius: 6px;">
+                        <strong>Abdurahman Muktar</strong> — UGR/2905/16
+                    </div>
+                    <div style="padding: 1rem; background-color: var(--bg-secondary); border-radius: 6px;">
+                        <strong>Abel Yeshewalem</strong> — UGR/7060/16
+                    </div>
+                    <div style="padding: 1rem; background-color: var(--bg-secondary); border-radius: 6px;">
+                        <strong>Gersam Mussie</strong> — UGR/8338/16
+                    </div>
+                    <div style="padding: 1rem; background-color: var(--bg-secondary); border-radius: 6px;">
+                        <strong>Leulekal Nahusenay</strong> — UGR/8263/16
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Project Information</h2>
+                <p style="margin-bottom: 1rem;">
+                    <strong>Submitted to:</strong> Mr. Endashaw A.
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    <strong>Course:</strong> Data Structures & Algorithms (DSA)
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    <strong>Institution:</strong> Addis Ababa University
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    <strong>Department:</strong> Biomedical Engineering
+                </p>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Support the Project</h2>
+                <p style="margin-bottom: 1rem;">
+                    If you find this project useful, consider supporting us:
+                </p>
+                <a href="https://buymeacoffee.com/fayerakenaf" target="_blank" class="btn btn-primary">
+                    ☕ Buy us a Coffee
+                </a>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Project Description</h2>
+                <p style="margin-bottom: 1rem;">
+                    This Patient Appointment & Queue Management System is designed to efficiently manage patient appointments 
+                    and prioritize emergency cases using fundamental data structures and algorithms concepts.
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    The system implements:
+                </p>
+                <ul style="margin-left: 2rem; margin-bottom: 1rem;">
+                    <li><strong>Queue:</strong> FIFO data structure for regular appointments</li>
+                    <li><strong>Priority Queue:</strong> For handling emergency cases with different priority levels</li>
+                    <li><strong>Linked List:</strong> Dynamic patient record management</li>
+                    <li><strong>Greedy Algorithm:</strong> Optimal doctor-patient assignment</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Patient Appointment & Queue Management System. All rights reserved.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.875rem;">By Biomedical Engineering Students - Addis Ababa University</p>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+        // Update header based on auth status
+        if (window.auth && window.auth.isAuthenticated()) {
+            document.getElementById('auth-buttons').style.display = 'none';
+            document.getElementById('logout-button').style.display = 'inline-block';
+        }
+    </script>
+</body>
+</html>
+
+

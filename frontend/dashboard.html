@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Patient Queue System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-section">
+            <div class="logo">🏥</div>
+            <div class="site-name">Patient Queue System</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" id="theme-toggle" onclick="window.theme.toggleTheme()">🌙</button>
+            <button class="btn btn-secondary" onclick="window.auth.logout()">Logout</button>
+        </div>
+    </header>
+
+    <nav>
+        <ul class="nav-links">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="patient-registration.html">Register Patient</a></li>
+            <li><a href="appointment.html">Appointments & Queue</a></li>
+            <li><a href="search.html">Search</a></li>
+            <li><a href="admin.html">Admin</a></li>
+            <li><a href="about.html">About Us</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h1 style="margin-bottom: 2rem;">Dashboard</h1>
+            
+            <div id="stats-container" class="stats-grid">
+                <!-- Stats will be loaded here -->
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Quick Actions</h2>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="patient-registration.html" class="btn btn-primary">Register New Patient</a>
+                    <a href="appointment.html" class="btn btn-primary">View Queue</a>
+                    <a href="search.html" class="btn btn-secondary">Search Patients</a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Recent Activity</h2>
+                <p style="color: var(--text-color); opacity: 0.7;">No recent activity to display.</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+        // Check authentication
+        if (!window.auth.isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+        
+        // Load dashboard stats
+        async function loadStats() {
+            try {
+                const data = await window.api.getDashboardStats();
+                const stats = data.stats;
+                
+                const statsContainer = document.getElementById('stats-container');
+                statsContainer.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.total_patients}</div>
+                        <div class="stat-label">Total Patients</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.regular_queue_size}</div>
+                        <div class="stat-label">Regular Queue</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.emergency_queue_size}</div>
+                        <div class="stat-label">Emergency Queue</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.available_doctors}/${stats.total_doctors}</div>
+                        <div class="stat-label">Available Doctors</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        loadStats();
+    </script>
+</body>
+</html>
+
+

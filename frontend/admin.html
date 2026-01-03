@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Patient Queue System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-section">
+            <div class="logo">🏥</div>
+            <div class="site-name">Patient Queue System</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" id="theme-toggle" onclick="window.theme.toggleTheme()">🌙</button>
+            <button class="btn btn-secondary" onclick="window.auth.logout()">Logout</button>
+        </div>
+    </header>
+
+    <nav>
+        <ul class="nav-links">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="patient-registration.html">Register Patient</a></li>
+            <li><a href="appointment.html">Appointments & Queue</a></li>
+            <li><a href="search.html">Search</a></li>
+            <li><a href="admin.html">Admin</a></li>
+            <li><a href="about.html">About Us</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h1 style="margin-bottom: 2rem;">Admin Panel</h1>
+            
+            <div id="access-denied" style="display: none;">
+                <div class="card">
+                    <div class="alert alert-error">
+                        <h2 style="margin-bottom: 1rem;">Access Denied</h2>
+                        <p>You do not have permission to access this page. Admin access is restricted.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="admin-content" style="display: none;">
+                <div class="card">
+                    <h2 class="card-title">System Overview</h2>
+                    <div id="admin-stats" class="stats-grid">
+                        <!-- Stats will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="card-title">All Patients</h2>
+                    <div id="all-patients">
+                        <p style="color: var(--text-color); opacity: 0.7;">Loading patients...</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="card-title">Doctors</h2>
+                    <div id="doctors-list">
+                        <p style="color: var(--text-color); opacity: 0.7;">Loading doctors...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+        // Check authentication
+        if (!window.auth.isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+        
+        // Check admin access
+        async function checkAdminAccess() {
+            try {
+                const hasAccess = await window.auth.checkAdminAccess();
+                
+                if (hasAccess) {
+                    document.getElementById('admin-content').style.display = 'block';
+                    loadAdminData();
+                } else {
+                    document.getElementById('access-denied').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error checking admin access:', error);
+                document.getElementById('access-denied').style.display = 'block';
+            }
+        }
+        
+        // Load admin data
+        async function loadAdminData() {
+            try {
+                // Load stats
+                const statsData = await window.api.getDashboardStats();
+                const stats = statsData.stats;
+                
+                document.getElementById('admin-stats').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.total_patients}</div>
+                        <div class="stat-label">Total Patients</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.regular_queue_size + stats.emergency_queue_size}</div>
+                        <div class="stat-label">Total in Queue</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.total_doctors}</div>
+                        <div class="stat-label">Total Doctors</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.available_doctors}</div>
+                        <div class="stat-label">Available Doctors</div>
+                    </div>
+                `;
+                
+                // Load all patients
+                const patientsData = await window.api.getPatients();
+                const patientsContainer = document.getElementById('all-patients');
+                
+                if (patientsData.patients && patientsData.patients.length > 0) {
+                    patientsContainer.innerHTML = `
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Age</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th>Condition</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${patientsData.patients.map(patient => `
+                                    <tr>
+                                        <td>${patient.id}</td>
+                                        <td><strong>${patient.name}</strong></td>
+                                        <td>${patient.age || 'N/A'}</td>
+                                        <td>${patient.phone || 'N/A'}</td>
+                                        <td>${patient.email || 'N/A'}</td>
+                                        <td>${patient.condition || 'N/A'}</td>
+                                        <td>
+                                            ${patient.is_emergency 
+                                                ? '<span class="badge badge-emergency">Emergency</span>' 
+                                                : '<span class="badge badge-regular">Regular</span>'}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    patientsContainer.innerHTML = '<p style="color: var(--text-color); opacity: 0.7;">No patients registered</p>';
+                }
+                
+                // Load doctors
+                const doctorsData = await window.api.getDoctors();
+                const doctorsContainer = document.getElementById('doctors-list');
+                
+                if (doctorsData.doctors && doctorsData.doctors.length > 0) {
+                    doctorsContainer.innerHTML = `
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Specialization</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${doctorsData.doctors.map(doctor => `
+                                    <tr>
+                                        <td>${doctor.id}</td>
+                                        <td><strong>${doctor.name}</strong></td>
+                                        <td>${doctor.specialization || 'N/A'}</td>
+                                        <td>
+                                            ${doctor.available 
+                                                ? '<span class="badge badge-regular">Available</span>' 
+                                                : '<span class="badge badge-emergency">Busy</span>'}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    doctorsContainer.innerHTML = '<p style="color: var(--text-color); opacity: 0.7;">No doctors available</p>';
+                }
+            } catch (error) {
+                console.error('Error loading admin data:', error);
+            }
+        }
+        
+        checkAdminAccess();
+    </script>
+</body>
+</html>
+
+
